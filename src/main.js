@@ -7,36 +7,200 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 const supabase = SUPABASE_URL && SUPABASE_ANON_KEY ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-const seedFriends = [
- {id:'1',first_name:'Marco',last_name:'Bianchi',city:'Porto',country:'Portugal',lat:41.1579,lon:-8.6291,quote:'Faith. Waves. People.',instagram:'@marcobianchi',color:'#FFD34F'},
- {id:'2',first_name:'Sofia',last_name:'Martin',city:'Bali',country:'Indonesia',lat:-8.4095,lon:115.1889,quote:'Find your people.',instagram:'@sofiawaves',color:'#4FC7C1'},
- {id:'3',first_name:'Luca',last_name:'Rossi',city:'Lisbon',country:'Portugal',lat:38.7223,lon:-9.1393,quote:'Saltwater fixes everything.',instagram:'@lucarossi',color:'#FF7A2F'},
- {id:'4',first_name:'Tommaso',last_name:'Verdi',city:'Ericeira',country:'Portugal',lat:38.9637,lon:-9.4173,quote:'Stay curious.',instagram:'@tomverdi',color:'#56A9E6'},
- {id:'5',first_name:'Emily',last_name:'Johnson',city:'Taghazout',country:'Morocco',lat:30.5428,lon:-9.7112,quote:'Good waves, good people.',instagram:'@emilywaves',color:'#4FC7C1'},
- {id:'6',first_name:'Jack',last_name:'Wilson',city:'Byron Bay',country:'Australia',lat:-28.6474,lon:153.602,quote:"Let's go.",instagram:'@jackwilson',color:'#FFD34F'},
- {id:'7',first_name:'Chloe',last_name:'Dubois',city:'Hossegor',country:'France',lat:43.662,lon:-1.428,quote:'Adventure is better together.',instagram:'@chloedubois',color:'#FF7A2F'}
+const COLORS = {
+  sky: '#6AC6E8', yellow: '#FFD764', orange: '#FF884D', cream: '#F7F7F7', ink: '#232323',
+  blue: '#397FCE', teal: '#54C7C4', green: '#6FBF73', purple: '#8D79C9', sand: '#F0D28B'
+};
+
+const demoFriends = [
+  { id:'1', first_name:'Marco', last_name:'Bianchi', city:'Porto', country:'Portugal', lat:41.1579, lon:-8.6291, quote:'Faith. Waves. People.', instagram:'@marcobianchi', color:COLORS.yellow },
+  { id:'2', first_name:'Sofia', last_name:'Martin', city:'Bali', country:'Indonesia', lat:-8.4095, lon:115.1889, quote:'Find your people.', instagram:'@sofiawaves', color:COLORS.teal },
+  { id:'3', first_name:'Luca', last_name:'Rossi', city:'Lisbon', country:'Portugal', lat:38.7223, lon:-9.1393, quote:'Saltwater fixes everything.', instagram:'@lucarossi', color:COLORS.orange },
+  { id:'4', first_name:'Tommaso', last_name:'Verdi', city:'Ericeira', country:'Portugal', lat:38.9637, lon:-9.4173, quote:'Stay curious.', instagram:'@tomverdi', color:COLORS.blue },
+  { id:'5', first_name:'Emily', last_name:'Johnson', city:'Taghazout', country:'Morocco', lat:30.5428, lon:-9.7112, quote:'Good waves, good people.', instagram:'@emilywaves', color:COLORS.teal },
+  { id:'6', first_name:'Jack', last_name:'Wilson', city:'Byron Bay', country:'Australia', lat:-28.6474, lon:153.602, quote:"Let's go.", instagram:'@jackwilson', color:COLORS.yellow },
+  { id:'7', first_name:'Chloe', last_name:'Dubois', city:'Hossegor', country:'France', lat:43.662, lon:-1.428, quote:'Adventure is better together.', instagram:'@chloedubois', color:COLORS.orange }
 ];
-const palette=['#56A9E6','#4FC7C1','#FFD34F','#FF7A2F','#86BEEA','#8FD9D1','#F4C95D','#F68B52'];
-const root=document.querySelector('#root');
-root.innerHTML=`<div id="app"><div id="globe"></div><header class="topbar"><div class="logo"><b>SURF CHURCH</b><span>WORLD</span></div><div class="search"><span>⌕</span><input id="search" placeholder="Search friends by name..."/></div><button class="add" id="add">📍 ADD YOUR PIN</button></header><aside class="friends card"><h2>FRIENDS ON THE MAP</h2><p>Everyone from the Surf Church community</p><div id="friendList"></div></aside><div class="stickers"><span class="sticker orange">GOOD VIBES</span><span class="sticker black">JESUS<br>OVER EVERYTHING</span><span class="sticker yellow">FAITH.<br>WAVES.<br>PEOPLE.</span><span class="sticker teal">🤙</span></div><div class="legend card"><b><i class="orange-dot"></i> Surf Church Porto · Matosinhos</b><b><i class="teal-dot"></i> Friend</b><b><i class="yellow-dot"></i> Your pin</b></div><div class="hint card">DRAG TO EXPLORE THE WORLD · SCROLL TO ZOOM · CLICK A PIN</div><section id="profile" class="profile card"><button class="x" id="closeProfile">×</button><div class="profileTop"><div id="avatar" class="bigAvatar"></div><div><h2 id="pname"></h2><div id="pquote" class="quote"></div></div></div><div id="pinfo" class="pinfo"></div><span class="tag">SURF CAMP COMMUNITY</span></section><div id="modal" class="modalWrap"><div class="modal card"><button class="x" id="closeModal">×</button><h2>JOIN THE MAP</h2><p>No login. No password. Just add yourself to the world.</p><label>First name<input id="first"></label><label>Last name<input id="last"></label><label>City / country<input id="place" placeholder="Matosinhos, Portugal"></label><label>Instagram<input id="ig" placeholder="@yourhandle"></label><label>Your quote<input id="quote" placeholder="Faith. Waves. People."></label><div class="modalActions"><button class="cancel" id="cancel">CANCEL</button><button class="save" id="save">DROP MY PIN</button></div></div></div><div id="toast"></div></div>`;
 
-const style=document.createElement('style');style.textContent=`:root{--blue:#56A9E6;--teal:#4FC7C1;--yellow:#FFD34F;--orange:#FF7A2F;--cream:#F7F3E8;--ink:#171717;--paper:#FFFDF7}*{box-sizing:border-box}html,body,#root,#app{margin:0;width:100%;height:100%;overflow:hidden}body{font-family:Arial,Helvetica,sans-serif;background:#07131d;color:var(--ink)}button,input{font:inherit}button{cursor:pointer}#globe{position:absolute;inset:0}#globe canvas{display:block}.topbar{position:absolute;z-index:10;left:22px;right:22px;top:18px;display:flex;gap:14px;align-items:center;pointer-events:none}.logo,.search,.add,.card{background:var(--paper);border:3px solid var(--ink);box-shadow:6px 6px 0 var(--ink);border-radius:16px}.logo{pointer-events:auto;padding:10px 16px 8px;line-height:.8;transform:rotate(-1deg);min-width:275px}.logo b{display:block;font-size:27px;font-style:italic;letter-spacing:-1.5px}.logo span{display:block;color:var(--orange);font-weight:1000;font-size:18px;margin-left:49px}.search{pointer-events:auto;display:flex;gap:10px;align-items:center;padding:11px 15px;flex:1;max-width:690px}.search input{border:0;outline:0;background:transparent;width:100%;font-weight:800;font-size:16px}.add{pointer-events:auto;margin-left:auto;padding:13px 18px;background:var(--yellow);font-weight:1000}.friends{position:absolute;z-index:12;right:22px;top:105px;width:330px;max-height:calc(100vh - 170px);overflow:auto;padding:17px}.friends h2{font-size:21px;margin:0 0 6px}.friends p{font-size:12px;color:#555;font-weight:800;margin:0 0 12px}.friend{display:flex;align-items:center;gap:10px;border-top:2px solid #ddd;padding:9px 0;cursor:pointer}.friend:hover{background:#fff1bd;border-radius:10px;padding-left:6px;padding-right:6px}.avatar{width:42px;height:42px;border:3px solid var(--ink);border-radius:50%;object-fit:cover;background:#ddd}.meta{flex:1}.meta b{display:block;font-size:14px}.meta small{font-weight:700;color:#555}.dot{width:11px;height:11px;border-radius:50%;border:2px solid var(--ink)}.legend{position:absolute;z-index:9;left:22px;bottom:22px;padding:10px 13px;display:flex;gap:12px;font-size:11px}.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid var(--ink);vertical-align:-1px}.orange-dot{background:var(--orange)}.teal-dot{background:var(--teal)}.yellow-dot{background:var(--yellow)}.hint{position:absolute;z-index:9;bottom:22px;left:50%;transform:translateX(-50%);padding:10px 15px;font-size:11px;font-weight:1000;white-space:nowrap}.stickers{position:absolute;z-index:9;left:22px;top:110px;display:flex;flex-direction:column;gap:9px;pointer-events:none}.sticker{display:inline-block;border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink);border-radius:10px;padding:6px 9px;font-weight:1000;font-size:11px;line-height:.9;transform:rotate(-3deg)}.sticker.black{background:var(--ink);color:white;transform:rotate(2deg)}.sticker.yellow{background:var(--yellow);transform:rotate(-1deg)}.sticker.orange{background:var(--orange);color:white}.sticker.teal{background:var(--teal);font-size:20px;padding:2px 8px;width:max-content}.profile{position:absolute;z-index:15;left:22px;bottom:82px;width:350px;padding:16px;display:none}.profile.active{display:block}.x{position:absolute;right:9px;top:7px;border:0;background:transparent;font-size:23px;font-weight:1000}.profileTop{display:flex;gap:12px;align-items:center}.bigAvatar{width:70px;height:70px;border:3px solid var(--ink);border-radius:50%;background:#56A9E6 center/cover no-repeat}.profile h2{font-size:21px;margin:0}.quote{font-weight:800;font-style:italic;margin-top:4px}.pinfo{font-size:13px;font-weight:800;line-height:1.7;margin-top:12px}.tag{display:inline-block;background:var(--teal);border:2px solid var(--ink);border-radius:7px;padding:4px 7px;font-size:10px;font-weight:1000;margin-top:7px}.modalWrap{position:absolute;z-index:30;inset:0;background:rgba(0,0,0,.48);display:none;align-items:center;justify-content:center}.modalWrap.show{display:flex}.modal{position:relative;width:min(460px,calc(100% - 30px));padding:22px}.modal h2{margin:0 0 4px}.modal p{font-size:13px;font-weight:700;color:#555;margin:0 0 14px}.modal label{display:block;text-transform:uppercase;font-size:10px;font-weight:1000;margin:9px 0}.modal input{display:block;width:100%;margin-top:5px;border:3px solid var(--ink);border-radius:9px;padding:9px;outline:0}.modalActions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}.modalActions button{border:3px solid var(--ink);border-radius:9px;padding:9px 13px;font-weight:1000}.save{background:var(--orange)}#toast{position:absolute;z-index:50;top:95px;left:50%;transform:translate(-50%,-10px);opacity:0;background:var(--yellow);border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink);border-radius:10px;padding:9px 13px;font-weight:1000;font-size:12px;transition:.2s}#toast.show{opacity:1;transform:translate(-50%,0)}@media(max-width:900px){.logo{min-width:auto}.logo b{font-size:20px}.logo span{font-size:14px;margin-left:35px}.friends{right:12px;bottom:75px;top:auto;width:285px;max-height:42vh}.topbar{left:12px;right:12px;top:12px;flex-wrap:wrap}.search{order:3;flex-basis:100%;max-width:none}.stickers{display:none}.legend{left:12px;bottom:12px}.hint{bottom:12px;font-size:9px}.profile{left:12px;bottom:75px;width:calc(100% - 24px)}}`;document.head.appendChild(style);
+const root = document.querySelector('#root');
+root.innerHTML = `
+<div id="app">
+  <div id="map"></div>
+  <header class="topbar">
+    <div class="brand"><div>SURF</div><div>CHURCH</div><b>WORLD</b></div>
+    <div class="find"><strong>FIND YOUR PEOPLE</strong><div class="searchbox"><span>⌕</span><input id="search" placeholder="Search by name..."/></div></div>
+    <button class="join" id="add">📍 <span>ADD YOUR PIN</span></button>
+    <div class="join-note">Join the map! <span>↘</span></div>
+  </header>
 
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x07131d);const camera=new THREE.PerspectiveCamera(35,innerWidth/innerHeight,.1,1000);camera.position.set(0,.1,4.05);const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;document.querySelector('#globe').appendChild(renderer.domElement);const controls=new OrbitControls(camera,renderer.domElement);controls.enablePan=false;controls.enableDamping=true;controls.dampingFactor=.055;controls.minDistance=2.55;controls.maxDistance=5.5;controls.rotateSpeed=.42;scene.add(new THREE.HemisphereLight(0xbbe8ff,0x163040,1.6));const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(4,3,5);scene.add(sun);const globeGroup=new THREE.Group();scene.add(globeGroup);
-const globe=new THREE.Mesh(new THREE.SphereGeometry(1.52,96,96),new THREE.MeshStandardMaterial({color:0x4c9ecf,roughness:1,metalness:0}));globeGroup.add(globe);const countryLayer=new THREE.Mesh(new THREE.SphereGeometry(1.535,96,96),new THREE.MeshBasicMaterial({transparent:false,opacity:1}));globeGroup.add(countryLayer);const atmosphere=new THREE.Mesh(new THREE.SphereGeometry(1.61,96,96),new THREE.MeshBasicMaterial({color:0x55b8ff,transparent:true,opacity:.1,side:THREE.BackSide}));globeGroup.add(atmosphere);
-function latLonToVector3(lat,lon,r=1.57){const phi=(90-lat)*Math.PI/180,theta=(lon+180)*Math.PI/180;return new THREE.Vector3(-r*Math.sin(phi)*Math.cos(theta),r*Math.cos(phi),r*Math.sin(phi)*Math.sin(theta))}
-function countryTexture(world){const canvas=document.createElement('canvas');canvas.width=2048;canvas.height=1024;const ctx=canvas.getContext('2d');ctx.fillStyle='#56A9E6';ctx.fillRect(0,0,canvas.width,canvas.height);const geo=feature(world,world.objects.countries);geo.features.forEach((f,i)=>{ctx.beginPath();const g=f.geometry;const polys=g.type==='Polygon'?[g.coordinates]:g.coordinates;polys.forEach(poly=>poly.forEach(ring=>{ring.forEach((p,j)=>{const x=(p[0]+180)/360*canvas.width,y=(90-p[1])/180*canvas.height;j?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.closePath()}));ctx.fillStyle=palette[i%palette.length];ctx.globalAlpha=.9;ctx.fill();ctx.globalAlpha=1;ctx.strokeStyle='#17303d';ctx.lineWidth=2.3;ctx.stroke()});return new THREE.CanvasTexture(canvas)}
-fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(r=>r.json()).then(world=>{countryLayer.material.map=countryTexture(world);countryLayer.material.needsUpdate=true}).catch(()=>{});
-const pinGroup=new THREE.Group();globeGroup.add(pinGroup);
-function makeTextSprite(text,bg='#171717',fg='#fff'){const c=document.createElement('canvas');c.width=700;c.height=180;const x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);x.fillStyle=bg;x.strokeStyle='#171717';x.lineWidth=9;x.beginPath();x.roundRect(12,18,676,140,25);x.fill();x.stroke();x.fillStyle=fg;x.font='900 54px Arial';x.textAlign='center';x.textBaseline='middle';x.fillText(text,350,88);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true}));s.scale.set(.65,.17,1);return s}
-function makePin(f,color=f.color||'#4FC7C1'){const g=new THREE.Group();g.add(new THREE.Mesh(new THREE.SphereGeometry(.065,20,20),new THREE.MeshBasicMaterial({color:0x171717})),new THREE.Mesh(new THREE.SphereGeometry(.047,20,20),new THREE.MeshBasicMaterial({color})));if(f.avatar_url){const tex=new THREE.TextureLoader().load(f.avatar_url);const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));spr.scale.set(.20,.20,1);spr.position.y=.13;g.add(spr)}g.userData=f;return g}
-function makeHQ(){const g=new THREE.Group();const body=new THREE.Mesh(new THREE.BoxGeometry(.18,.14,.15),new THREE.MeshStandardMaterial({color:0xdbc6a5,roughness:1}));body.position.y=.08;g.add(body);const roof=new THREE.Mesh(new THREE.BoxGeometry(.205,.025,.17),new THREE.MeshStandardMaterial({color:0x171717}));roof.position.y=.16;g.add(roof);for(let i=0;i<4;i++){const board=new THREE.Mesh(new THREE.CapsuleGeometry(.012,.09,5,10),new THREE.MeshStandardMaterial({color:palette[i+1]}));board.rotation.z=.08;board.position.set(-.13+i*.035,.10,.09);g.add(board)}const sign=makeTextSprite('SURF CHURCH PORTO','#171717','#FFD34F');sign.scale.set(.72,.18,1);sign.position.set(0,.27,.01);g.add(sign);return g}
-function orientToGlobe(g,pos){g.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),pos.clone().normalize())}
-function addLandmark(name,lat,lon,type,color){const pos=latLonToVector3(lat,lon,1.58),g=new THREE.Group();if(type==='tower'){const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.018,.032,.20,8),new THREE.MeshStandardMaterial({color:0x171717}));shaft.position.y=.10;g.add(shaft);const top=new THREE.Mesh(new THREE.ConeGeometry(.045,.08,8),new THREE.MeshStandardMaterial({color}));top.position.y=.24;g.add(top)}else{const base=new THREE.Mesh(new THREE.BoxGeometry(.13,.045,.10),new THREE.MeshStandardMaterial({color:0xdbc6a5}));base.position.y=.022;g.add(base);const dome=new THREE.Mesh(new THREE.SphereGeometry(.055,16,8,0,Math.PI*2,0,Math.PI/2),new THREE.MeshStandardMaterial({color}));dome.position.y=.08;g.add(dome)}const label=makeTextSprite(name,color==='#FFD34F'?'#171717':'#FFFDF7',color==='#FFD34F'?'#FFD34F':'#171717');label.scale.set(.48,.12,1);label.position.y=.31;g.add(label);g.position.copy(pos);orientToGlobe(g,pos);g.userData={landmark:name};globeGroup.add(g)}
-addLandmark('PARIS',48.8584,2.2945,'tower','#FFD34F');addLandmark('LONDON',51.5007,-0.1246,'tower','#4FC7C1');addLandmark('SYDNEY',-33.8568,151.2153,'dome','#FF7A2F');addLandmark('RIO',-22.9519,-43.2105,'dome','#56A9E6');addLandmark('NEW YORK',40.6892,-74.0445,'tower','#FFD34F');addLandmark('TOKYO',35.6586,139.7454,'tower','#4FC7C1');
-const hq=makeHQ();hq.position.copy(latLonToVector3(41.182,-8.689,1.59));hq.userData={id:'hq',first_name:'Surf Church',last_name:'Porto',city:'Matosinhos, Porto',country:'Portugal',lat:41.182,lon:-8.689,quote:'Faith. Waves. People.',instagram:'@surfchurchporto',avatar_url:'',hq:true};pinGroup.add(hq);
-let profiles=[...seedFriends];function addProfileToGlobe(f){const p=makePin(f);p.position.copy(latLonToVector3(f.lat,f.lon,1.59));pinGroup.add(p)}profiles.forEach(addProfileToGlobe);const list=document.querySelector('#friendList');function avatarUrl(f){return f.avatar_url||`https://i.pravatar.cc/100?u=${encodeURIComponent(f.id||f.first_name+f.last_name)}`}function renderList(items=profiles){list.innerHTML=items.map(f=>`<div class="friend" data-id="${f.id}"><img class="avatar" src="${avatarUrl(f)}"><div class="meta"><b>${f.first_name} ${f.last_name}</b><small>${f.city}, ${f.country}</small></div><i class="dot" style="background:${f.color||'#4FC7C1'}"></i></div>`).join('');list.querySelectorAll('.friend').forEach(el=>el.onclick=()=>{const f=profiles.find(x=>x.id===el.dataset.id);if(f){showProfile(f);focusLocation(f)}})}renderList();document.querySelector('#search').oninput=e=>{const q=e.target.value.toLowerCase();renderList(profiles.filter(f=>`${f.first_name} ${f.last_name}`.toLowerCase().includes(q)))};
-function showProfile(f){document.querySelector('#profile').classList.add('active');document.querySelector('#pname').textContent=`${f.first_name} ${f.last_name}`;document.querySelector('#pquote').textContent=`“${f.quote||''}”`;document.querySelector('#pinfo').innerHTML=`📍 ${f.city}, ${f.country}<br>◎ ${f.instagram||'—'}`;document.querySelector('#avatar').style.backgroundImage=`url(${avatarUrl(f)})`}function focusLocation(f){camera.position.copy(latLonToVector3(f.lat,f.lon,1).normalize().multiplyScalar(3.15));controls.target.set(0,0,0)}document.querySelector('#closeProfile').onclick=()=>document.querySelector('#profile').classList.remove('active');
-const modal=document.querySelector('#modal');document.querySelector('#add').onclick=()=>modal.classList.add('show');document.querySelector('#closeModal').onclick=()=>modal.classList.remove('show');document.querySelector('#cancel').onclick=()=>modal.classList.remove('show');function toast(t){const el=document.querySelector('#toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200)}async function geocode(place){const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(place)}`);const d=await r.json();return d[0]?{lat:+d[0].lat,lon:+d[0].lon,display:d[0].display_name}:null}
-document.querySelector('#save').onclick=async()=>{const first=document.querySelector('#first').value.trim(),last=document.querySelector('#last').value.trim(),place=document.querySelector('#place').value.trim(),instagram=document.querySelector('#ig').value.trim(),quote=document.querySelector('#quote').value.trim();if(!first||!last||!place){toast('Name + location are required');return}const geo=await geocode(place).catch(()=>null);if(!geo){toast('Could not find that place');return}const bits=geo.display.split(',').map(x=>x.trim());const f={id:crypto.randomUUID(),first_name:first,last_name:last,city:bits[0]||place,country:bits[bits.length-1]||'',lat:geo.lat,lon:geo.lon,quote:quote||'Faith. Waves. People.',instagram:instagram||'',avatar_url:'',color:'#FFD34F'};if(supabase){const {data,error}=await supabase.from('profiles').insert({first_name:f.first_name,last_name:f.last_name,quote:f.quote,instagram:f.instagram,city:f.city,country:f.country,lat:f.lat,lon:f.lon}).select().single();if(error){console.error(error);toast('Could not save pin');return}f.id=data.id}profiles.push(f);addProfileToGlobe(f);renderList();showProfile(f);focusLocation(f);modal.classList.remove('show');toast('You are on the map 🌍')};
-async function loadProfiles(){if(!supabase)return;const {data,error}=await supabase.from('profiles').select('*').order('created_at',{ascending:true});if(error){console.warn(error);return}if(data?.length){pinGroup.children.filter?.(()=>false);profiles=data;profiles.forEach(addProfileToGlobe);renderList()}}loadProfiles();const ray=new THREE.Raycaster(),ptr=new THREE.Vector2();renderer.domElement.addEventListener('click',e=>{const r=renderer.domElement.getBoundingClientRect();ptr.x=(e.clientX-r.left)/r.width*2-1;ptr.y=-(e.clientY-r.top)/r.height*2+1;ray.setFromCamera(ptr,camera);const hits=ray.intersectObjects(pinGroup.children,true);if(!hits.length)return;let o=hits[0].object;while(o.parent&&o.parent!==pinGroup)o=o.parent;const f=o.userData;if(f?.id==='hq'||f?.first_name){showProfile(f);focusLocation(f)}});function animate(){requestAnimationFrame(animate);controls.update();pinGroup.children.forEach((p,i)=>{const s=1+Math.sin(performance.now()*.002+i)*.04;p.scale.setScalar(s)});renderer.render(scene,camera)}animate();addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+  <aside class="friends paper">
+    <div class="friends-title">FRIENDS ON THE MAP</div>
+    <div id="friendList"></div>
+  </aside>
+
+  <div class="game-stickers" aria-hidden="true">
+    <div class="sticker good">GOOD<br>VIBES</div>
+    <div class="sticker smile">☺</div>
+    <div class="sticker shaka">🤙</div>
+    <div class="sticker faith">FAITH.<br>WAVES.<br>PEOPLE.</div>
+    <div class="sticker jesus">✚ JESUS<br>OVER<br>EVERYTHING</div>
+  </div>
+
+  <div class="map-label porto-label">SURF CHURCH PORTO <small>MATOSINHOS · OUR HOME BASE</small></div>
+  <div class="hint paper">DRAG TO EXPLORE THE WORLD · SCROLL TO ZOOM · CLICK A PIN</div>
+
+  <section id="profile" class="profile paper">
+    <button class="close" id="closeProfile">×</button>
+    <div class="profile-row"><div class="profile-avatar" id="profileAvatar"></div><div><h2 id="profileName"></h2><div class="profile-quote" id="profileQuote"></div></div></div>
+    <div id="profileInfo" class="profile-info"></div>
+    <span class="community-tag">SURF CAMP COMMUNITY</span>
+  </section>
+
+  <div class="modal-wrap" id="modal">
+    <div class="modal paper"><button class="close" id="closeModal">×</button><h2>JOIN THE MAP!</h2><p>Add yourself to the Surf Church world. No password. No complicated profile.</p>
+      <label>FIRST NAME<input id="first" placeholder="Federico"/></label><label>LAST NAME<input id="last" placeholder="Nigro"/></label><label>CITY / COUNTRY<input id="place" placeholder="Matosinhos, Portugal"/></label><label>INSTAGRAM<input id="ig" placeholder="@yourhandle"/></label><label>YOUR QUOTE<input id="quote" placeholder="Faith. Waves. People."/></label>
+      <div class="modal-actions"><button id="cancel">CANCEL</button><button class="save" id="save">DROP MY PIN</button></div>
+    </div>
+  </div>
+  <div id="toast"></div>
+</div>`;
+
+const css = document.createElement('style');
+css.textContent = `
+:root{--sky:#6AC6E8;--yellow:#FFD764;--orange:#FF884D;--cream:#F7F7F7;--ink:#232323;--blue:#397FCE;--teal:#54C7C4}
+*{box-sizing:border-box}html,body,#root,#app{margin:0;width:100%;height:100%;overflow:hidden}body{font-family:Arial Black,Impact,Arial,sans-serif;background:#6AC6E8;color:var(--ink)}button,input{font:inherit}button{cursor:pointer}
+#map{position:absolute;inset:0;background:linear-gradient(#72CBE9,#5CB6DD)}#map canvas{display:block}
+.paper{background:rgba(247,247,247,.97);border:3px solid var(--ink);box-shadow:7px 7px 0 var(--ink);border-radius:17px}
+.topbar{position:absolute;z-index:20;left:0;right:0;top:0;height:158px;display:flex;align-items:flex-start;gap:20px;padding:20px 32px;background:linear-gradient(90deg,#6AC6E8 0 22%,var(--yellow) 22% 79%,#6AC6E8 79%);border-bottom:4px solid var(--ink)}
+.brand{width:250px;height:115px;line-height:.78;font-size:42px;letter-spacing:-3px;color:var(--cream);text-shadow:3px 3px 0 var(--ink),-2px -2px 0 var(--ink),2px -2px 0 var(--ink),-2px 2px 0 var(--ink);font-style:italic;transform:rotate(-2deg);position:relative;padding-top:3px}.brand b{font-size:26px;letter-spacing:-1px;color:var(--orange);display:block;margin-left:98px;margin-top:4px;text-shadow:2px 2px 0 var(--ink),-1px -1px 0 var(--ink),1px -1px 0 var(--ink),-1px 1px 0 var(--ink)}
+.find{flex:1;max-width:720px;padding-top:6px}.find strong{font-size:24px;display:block;margin:0 0 12px}.searchbox{height:43px;max-width:340px;border:3px solid var(--ink);border-radius:10px;background:var(--cream);display:flex;align-items:center;padding:0 11px;box-shadow:4px 4px 0 var(--ink)}.searchbox span{font-size:22px;margin-right:8px}.searchbox input{border:0;outline:0;background:transparent;width:100%;font-family:Arial,sans-serif;font-size:15px;font-weight:800}
+.join{margin-top:65px;background:var(--blue);color:white;border:3px solid var(--ink);border-radius:12px;box-shadow:5px 5px 0 var(--ink);height:46px;padding:0 25px;font-size:17px;font-weight:1000}.join:hover{transform:translate(2px,2px);box-shadow:3px 3px 0 var(--ink)}.join-note{position:absolute;right:280px;top:18px;font-family:cursive;font-size:19px;font-weight:900;transform:rotate(-5deg)}.join-note span{font-size:27px}
+.friends{position:absolute;z-index:18;right:22px;top:18px;width:300px;max-height:calc(100vh - 36px);overflow:auto;border-color:#397FCE;box-shadow:6px 6px 0 var(--ink)}.friends-title{background:var(--sky);color:var(--cream);font-size:21px;padding:15px 16px;border-bottom:3px solid var(--ink);margin:-1px -1px 10px;text-shadow:1px 1px 0 #456}.friend{display:flex;align-items:center;gap:9px;padding:8px 13px;border-bottom:1px solid #b8b8b8;cursor:pointer}.friend:hover{background:#fff0b0}.friend:last-child{border-bottom:0}.avatar{width:46px;height:46px;border-radius:50%;border:2px solid var(--ink);background:linear-gradient(135deg,var(--sky),var(--yellow));display:grid;place-items:center;font-size:16px;color:white;text-shadow:1px 1px 0 var(--ink);flex:none}.friend-meta{flex:1;font-family:Arial,sans-serif}.friend-meta b{font-size:14px}.friend-meta small{display:block;font-size:12px;margin-top:2px}.friend-dot{width:13px;height:13px;border:2px solid var(--ink);border-radius:50%;flex:none}
+.game-stickers{position:absolute;z-index:17;left:28px;bottom:18px;display:flex;gap:12px;align-items:flex-end;pointer-events:none}.sticker{border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink);font-weight:1000;line-height:.82;text-align:center}.good{background:var(--cream);color:var(--orange);font-size:24px;padding:10px 9px;border-radius:12px;transform:rotate(-5deg);text-shadow:1px 1px 0 var(--ink)}.smile{background:var(--yellow);border-radius:50%;width:48px;height:48px;display:grid;place-items:center;font-size:31px;transform:rotate(7deg)}.shaka{background:var(--blue);color:white;border-radius:12px;padding:4px 9px;font-size:30px;transform:rotate(-8deg)}.faith{background:var(--yellow);border-radius:50%;padding:10px 16px;font-size:13px;transform:rotate(4deg)}.jesus{background:var(--ink);color:var(--cream);border-radius:7px;padding:8px 13px;font-size:12px;transform:rotate(-4deg)}
+.map-label{position:absolute;z-index:16;left:50%;bottom:145px;transform:translateX(-50%);background:var(--ink);color:white;border-radius:10px;padding:9px 15px;font-size:18px;box-shadow:4px 4px 0 rgba(255,255,255,.65);text-align:center;pointer-events:none}.map-label small{display:block;color:var(--yellow);font:700 11px Arial,sans-serif;margin-top:3px}.hint{position:absolute;z-index:16;left:50%;bottom:20px;transform:translateX(-50%);padding:10px 16px;font-size:11px;white-space:nowrap}
+.profile{position:absolute;z-index:30;left:25px;bottom:100px;width:355px;padding:16px;display:none}.profile.active{display:block}.close{position:absolute;right:8px;top:5px;border:0;background:transparent;font-size:25px;font-weight:1000}.profile-row{display:flex;gap:12px;align-items:center}.profile-avatar{width:68px;height:68px;border-radius:50%;border:3px solid var(--ink);background:linear-gradient(135deg,var(--sky),var(--orange));display:grid;place-items:center;color:white;font-size:20px}.profile h2{margin:0;font-size:20px}.profile-quote{font:italic 700 13px Arial,sans-serif;margin-top:4px}.profile-info{font:700 13px Arial,sans-serif;line-height:1.7;margin-top:12px}.community-tag{display:inline-block;background:var(--teal);border:2px solid var(--ink);border-radius:7px;padding:4px 7px;font-size:10px;margin-top:7px}
+.modal-wrap{position:absolute;z-index:50;inset:0;background:rgba(35,35,35,.5);display:none;align-items:center;justify-content:center}.modal-wrap.show{display:flex}.modal{position:relative;width:min(470px,calc(100% - 30px));padding:22px}.modal h2{margin:0 0 5px;font-size:26px}.modal p{font:700 13px Arial,sans-serif;color:#555;margin:0 0 13px}.modal label{display:block;font-size:10px;margin:9px 0}.modal input{display:block;width:100%;border:3px solid var(--ink);border-radius:9px;padding:9px;margin-top:4px;outline:0;background:white;font-family:Arial,sans-serif}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}.modal-actions button{border:3px solid var(--ink);border-radius:9px;padding:9px 13px;background:white;font-weight:1000}.modal-actions .save{background:var(--orange);color:white}
+#toast{position:absolute;z-index:60;top:170px;left:50%;transform:translate(-50%,-10px);opacity:0;background:var(--yellow);border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink);border-radius:10px;padding:9px 13px;font-weight:1000;font-size:12px;transition:.2s}#toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:900px){.topbar{height:122px;padding:12px;gap:9px}.brand{width:150px;font-size:28px}.brand b{font-size:18px;margin-left:50px}.find strong{font-size:16px}.searchbox{height:37px}.join{margin-top:38px;padding:0 12px}.join span{display:none}.join-note{display:none}.friends{top:135px;right:10px;width:270px;max-height:42vh}.game-stickers{display:none}.map-label{bottom:115px;font-size:14px}.hint{bottom:10px;font-size:8px}.profile{left:10px;bottom:65px;width:calc(100% - 20px)}}`;
+document.head.appendChild(css);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(34, innerWidth/innerHeight, .1, 1000);
+camera.position.set(0,.18,4.0);
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(innerWidth,innerHeight); renderer.outputColorSpace=THREE.SRGBColorSpace;
+document.querySelector('#map').appendChild(renderer.domElement);
+const controls = new OrbitControls(camera,renderer.domElement);
+controls.enablePan=false; controls.enableDamping=true; controls.dampingFactor=.055; controls.minDistance=2.55; controls.maxDistance=5.5; controls.rotateSpeed=.38; controls.zoomSpeed=.55;
+scene.add(new THREE.HemisphereLight(0xdaf5ff,0x234353,1.65));
+const sun = new THREE.DirectionalLight(0xffffff,2.3); sun.position.set(4,5,6); scene.add(sun);
+
+const world = new THREE.Group(); scene.add(world);
+const base = new THREE.Mesh(new THREE.SphereGeometry(1.55,48,32),new THREE.MeshStandardMaterial({color:0x2f92ca,roughness:.92,flatShading:true})); world.add(base);
+const oceanRing = new THREE.Mesh(new THREE.SphereGeometry(1.57,48,32),new THREE.MeshBasicMaterial({color:0x79d5ed,transparent:true,opacity:.35,wireframe:true})); world.add(oceanRing);
+const countryLayer = new THREE.Mesh(new THREE.SphereGeometry(1.565,64,40),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true})); world.add(countryLayer);
+const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(1.68,48,32),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.16,side:THREE.BackSide})); world.add(atmosphere);
+const markers = new THREE.Group(); world.add(markers);
+
+function latLon(lat,lon,r=1.585){const phi=(90-lat)*Math.PI/180,theta=(lon+180)*Math.PI/180;return new THREE.Vector3(-r*Math.sin(phi)*Math.cos(theta),r*Math.cos(phi),r*Math.sin(phi)*Math.sin(theta))}
+
+function drawCountryTexture(topology){
+  const c=document.createElement('canvas'); c.width=2048; c.height=1024; const x=c.getContext('2d');
+  x.fillStyle='#4faed3'; x.fillRect(0,0,c.width,c.height);
+  const geo=feature(topology,topology.objects.countries);
+  const countryColors=['#6FBF73','#FFD764','#FF884D','#397FCE','#8D79C9','#F0D28B','#54C7C4'];
+  geo.features.forEach((f,i)=>{
+    const polys=f.geometry.type==='Polygon'?[f.geometry.coordinates]:f.geometry.coordinates;
+    x.beginPath();
+    polys.forEach(poly=>poly.forEach(ring=>ring.forEach((p,j)=>{const px=(p[0]+180)/360*c.width,py=(90-p[1])/180*c.height;j?x.lineTo(px,py):x.moveTo(px,py)})));
+    x.fillStyle=countryColors[i%countryColors.length]; x.globalAlpha=.94; x.fill(); x.globalAlpha=1; x.strokeStyle='#2b5969'; x.lineWidth=2.8; x.stroke();
+  });
+  // cartoon wave marks across ocean
+  x.strokeStyle='rgba(255,255,255,.42)'; x.lineWidth=5;
+  for(let row=0;row<12;row++) for(let col=0;col<22;col++){
+    const px=col*95+30+(row%2)*30, py=row*75+45; x.beginPath(); x.arc(px,py,18,Math.PI*.15,Math.PI*.85); x.stroke();
+  }
+  const texture=new THREE.CanvasTexture(c); texture.colorSpace=THREE.SRGBColorSpace; return texture;
+}
+fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(r=>r.json()).then(topology=>{countryLayer.material.map=drawCountryTexture(topology);countryLayer.material.needsUpdate=true}).catch(()=>{});
+
+function makeBadge(text,color,scale=.7){
+  const c=document.createElement('canvas'); c.width=900;c.height=220;const x=c.getContext('2d');
+  x.fillStyle=color;x.strokeStyle='#232323';x.lineWidth=12;x.beginPath();x.roundRect(18,25,864,165,34);x.fill();x.stroke();
+  x.fillStyle=color===COLORS.yellow?'#232323':'#fff';x.font='900 62px Arial Black,Arial';x.textAlign='center';x.textBaseline='middle';x.fillText(text,450,110);
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true}));s.scale.set(scale,scale*.245,1);return s;
+}
+function makePin(p){
+  const g=new THREE.Group();
+  const stem=new THREE.Mesh(new THREE.CylinderGeometry(.018,.025,.16,8),new THREE.MeshStandardMaterial({color:0x232323})); stem.position.y=.09;g.add(stem);
+  const outer=new THREE.Mesh(new THREE.SphereGeometry(.075,16,10),new THREE.MeshStandardMaterial({color:0x232323,flatShading:true})); outer.position.y=.19;g.add(outer);
+  const inner=new THREE.Mesh(new THREE.SphereGeometry(.056,16,10),new THREE.MeshStandardMaterial({color:new THREE.Color(p.color||COLORS.teal),flatShading:true})); inner.position.y=.19;g.add(inner);
+  g.userData=p; return g;
+}
+function initials(p){return `${(p.first_name||'S')[0]}${(p.last_name||'C')[0]}`.toUpperCase()}
+
+function makeHQ(){
+  const g=new THREE.Group();
+  const island=new THREE.Mesh(new THREE.CylinderGeometry(.34,.42,.08,8),new THREE.MeshStandardMaterial({color:0x8fbf78,flatShading:true})); island.position.y=-.03; g.add(island);
+  const house=new THREE.Mesh(new THREE.BoxGeometry(.30,.20,.22),new THREE.MeshStandardMaterial({color:0xcbb79a,flatShading:true})); house.position.y=.10; g.add(house);
+  const roof=new THREE.Mesh(new THREE.ConeGeometry(.23,.16,4),new THREE.MeshStandardMaterial({color:0x232323,flatShading:true})); roof.rotation.y=Math.PI/4; roof.position.y=.28; g.add(roof);
+  for(let i=0;i<3;i++){const board=new THREE.Mesh(new THREE.CapsuleGeometry(.025,.11,4,8),new THREE.MeshStandardMaterial({color:[0xff884d,0xffd764,0x54c7c4][i],flatShading:true}));board.rotation.z=Math.PI/2;board.position.set(-.17+i*.06,.13,.12);g.add(board)}
+  const palmStem=new THREE.Mesh(new THREE.CylinderGeometry(.012,.018,.25,7),new THREE.MeshStandardMaterial({color:0x8b6a43})); palmStem.position.set(.19,.16,.08);g.add(palmStem);
+  const leaves=new THREE.Mesh(new THREE.SphereGeometry(.07,8,4),new THREE.MeshStandardMaterial({color:0x3f8e55,flatShading:true})); leaves.scale.y=.55; leaves.position.set(.19,.30,.08);g.add(leaves);
+  const label=makeBadge('SURF CHURCH PORTO',COLORS.orange,.62);label.position.set(0,.55,0);g.add(label);
+  g.userData={hq:true,first_name:'Surf Church',last_name:'Porto',city:'Matosinhos',country:'Portugal',lat:41.2049,lon:-8.7058,quote:'Our home base.',instagram:'@surfchurchporto'};return g;
+}
+
+const hq=makeHQ(); hq.position.copy(latLon(41.2049,-8.7058,1.61)); markers.add(hq);
+
+demoFriends.forEach(p=>{const pin=makePin(p);pin.position.copy(latLon(p.lat,p.lon,1.61));markers.add(pin)});
+
+function showProfile(p){
+  const el=document.querySelector('#profile'); el.classList.add('active');
+  const avatar=document.querySelector('#profileAvatar'); avatar.textContent=p.hq?'🏄':initials(p); avatar.style.background=p.hq?'linear-gradient(135deg,#ff884d,#ffd764)':'linear-gradient(135deg,#6ac6e8,#397fce)';
+  document.querySelector('#profileName').textContent=p.hq?'Surf Church Porto':`${p.first_name} ${p.last_name}`;
+  document.querySelector('#profileQuote').textContent=`“${p.quote||'Faith. Waves. People.'}”`;
+  document.querySelector('#profileInfo').innerHTML=`📍 ${p.city}, ${p.country}<br>◎ ${p.instagram||'@surfchurchporto'}`;
+}
+
+document.querySelector('#closeProfile').onclick=()=>document.querySelector('#profile').classList.remove('active');
+
+const list=document.querySelector('#friendList');
+function renderList(items){list.innerHTML='';items.forEach(p=>{const row=document.createElement('div');row.className='friend';row.innerHTML=`<div class="avatar">${initials(p)}</div><div class="friend-meta"><b>${p.first_name} ${p.last_name}</b><small>${p.city}, ${p.country}</small></div><i class="friend-dot" style="background:${p.color}"></i>`;row.onclick=()=>{showProfile(p);const v=latLon(p.lat,p.lon,1);camera.position.copy(v.normalize().multiplyScalar(3.15));controls.target.set(0,0,0)};list.appendChild(row)})}
+renderList(demoFriends);
+
+document.querySelector('#search').addEventListener('input',e=>{const q=e.target.value.toLowerCase();renderList(demoFriends.filter(p=>`${p.first_name} ${p.last_name}`.toLowerCase().includes(q)))});
+
+async function loadProfiles(){
+  if(!supabase)return;
+  const {data,error}=await supabase.from('profiles').select('*').order('created_at',{ascending:true});
+  if(error||!data?.length)return;
+  data.forEach(p=>{if(demoFriends.some(d=>d.id===p.id))return;const normalized={...p,color:COLORS.teal};const pin=makePin(normalized);pin.position.copy(latLon(p.lat,p.lon,1.61));markers.add(pin);demoFriends.push(normalized)});renderList(demoFriends);
+}
+loadProfiles();
+
+const modal=document.querySelector('#modal');document.querySelector('#add').onclick=()=>modal.classList.add('show');document.querySelector('#closeModal').onclick=()=>modal.classList.remove('show');document.querySelector('#cancel').onclick=()=>modal.classList.remove('show');
+function toast(t){const el=document.querySelector('#toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200)}
+async function geocode(place){
+  try{const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(place)}`);const d=await r.json();if(d[0])return{lat:+d[0].lat,lon:+d[0].lon,display:d[0].display_name};}catch(e){}return null;
+}
+document.querySelector('#save').onclick=async()=>{
+  const first=document.querySelector('#first').value.trim(),last=document.querySelector('#last').value.trim(),place=document.querySelector('#place').value.trim(),instagram=document.querySelector('#ig').value.trim(),quote=document.querySelector('#quote').value.trim();
+  if(!first||!last||!place){toast('Add your name + location ✌');return}
+  toast('Finding your place on the world...'); const geo=await geocode(place); if(!geo){toast('Could not find that place');return}
+  const p={first_name:first,last_name:last,city:place,country:'',lat:geo.lat,lon:geo.lon,instagram,quote,color:COLORS.yellow};
+  if(supabase){const {data,error}=await supabase.from('profiles').insert({first_name:first,last_name:last,city:place,country:'',lat:geo.lat,lon:geo.lon,instagram,quote}).select().single();if(!error&&data)Object.assign(p,data)}
+  const pin=makePin(p);pin.position.copy(latLon(p.lat,p.lon,1.61));markers.add(pin);demoFriends.push(p);renderList(demoFriends);showProfile(p);modal.classList.remove('show');toast('You are on the map! 🌍');
+};
+
+const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
+renderer.domElement.addEventListener('click',e=>{const r=renderer.domElement.getBoundingClientRect();pointer.x=(e.clientX-r.left)/r.width*2-1;pointer.y=-(e.clientY-r.top)/r.height*2+1;raycaster.setFromCamera(pointer,camera);const hits=raycaster.intersectObjects(markers.children,true);if(!hits.length)return;let o=hits[0].object;while(o.parent&&o.parent!==markers)o=o.parent;if(o.userData?.hq||o.userData?.first_name)showProfile(o.userData)});
+
+function animate(){requestAnimationFrame(animate);controls.update();markers.children.forEach((m,i)=>{m.position.y+=Math.sin(performance.now()*.002+i)*.00008;m.rotation.y+=.0007});oceanRing.rotation.y+=.00015;renderer.render(scene,camera)}animate();
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+`;
+css.textContent += '';
+const script = document.createElement('script');
+// CSS is intentionally embedded in this module so the visual system ships as one deployable frontend file.
+
+document.head.appendChild(css);
