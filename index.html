@@ -117,6 +117,16 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opa
 
 .draftpin{width:56px;height:70px;transform:translate(-50%,-100%);pointer-events:none;animation:bounce 1.2s ease-in-out infinite;filter:drop-shadow(2px 3px 0 rgba(35,35,35,.85))}
 
+/* clusters */
+.cluster{position:absolute;left:0;top:0;transform-origin:center;cursor:pointer;width:64px;height:64px;margin:-32px 0 0 -32px;will-change:transform}
+.cluster .avs{position:absolute;inset:0;border-radius:50%;background:#fff;border:2.5px solid var(--ink);box-shadow:3px 3px 0 var(--ink);display:flex;align-items:center;justify-content:center}
+.cluster .cav{width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid #fff;margin:0 -8px;display:grid;place-items:center;font:12px var(--accent);color:#fff;box-shadow:0 0 0 1.5px var(--ink)}
+.cluster .n{position:absolute;right:-8px;top:-8px;min-width:26px;height:26px;padding:0 6px;border-radius:13px;background:var(--yellow);border:2px solid var(--ink);font:16px var(--accent);display:grid;place-items:center;box-shadow:2px 2px 0 var(--ink)}
+.cluster:hover .avs{background:#FFF3C7}
+#credit{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:6;font:14px var(--accent);letter-spacing:.08em;text-transform:uppercase;background:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:5px 14px 3px;box-shadow:2px 2px 0 var(--ink);white-space:nowrap;color:var(--ink);display:flex;gap:8px;align-items:center}
+#credit a{color:var(--ink);text-decoration:none}#credit a:hover{color:var(--blue-deep)}#credit .x{color:var(--orange);font-family:var(--head)}
+#stage[data-mode="surf"] #credit,#stage[data-mode="place"] #credit{display:none}
+
 /* ---------- Side panel (friends) ---------- */
 #side{position:absolute;top:16px;right:16px;bottom:16px;width:300px;z-index:15;display:flex;flex-direction:column;border:2.5px solid var(--ink);border-radius:16px;background:var(--paper);box-shadow:var(--shadow);overflow:hidden;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
 #side .head{background:var(--teal);border-bottom:2.5px solid var(--ink);padding:10px 14px 8px;display:flex;align-items:center;justify-content:space-between}
@@ -284,6 +294,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opa
   #stokeChip small{display:none}
   #stage[data-mode="surf"] #side{display:none}
   #touch{z-index:16}
+  #credit{bottom:66px;font-size:12px;padding:4px 10px 2px}
   #side{top:auto;left:0;right:0;bottom:0;width:auto;border-radius:18px 18px 0 0;border-bottom:0;box-shadow:0 -4px 0 var(--ink);transform:translateY(calc(100% - 58px));max-height:70vh}
   #side.open{transform:translateY(0)}
   .sheet-handle{display:block;width:44px;height:5px;border-radius:3px;background:rgba(255,255,255,.8);margin:0 auto 6px}
@@ -361,6 +372,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opa
     <div id="placebar"><span>📍 Tap the globe where you live</span><button class="btn sm teal" id="placeOk">Confirm</button><button class="btn sm" id="placeCancel">Back</button></div>
 
     <div class="toast" id="toast"></div>
+    <div id="credit"><a href="https://surfchurch.pt/en/" target="_blank" rel="noopener">Surf Church Porto</a><span class="x">×</span><a href="https://datasparkgrowth.com" target="_blank" rel="noopener">datasparkgrowth.com</a></div>
 
     <aside id="side">
       <div class="head" id="sideHead"><div class="sheet-handle"></div><div class="row-h"><span class="t">Friends on the map</span><span class="acc" id="sideCount" style="color:#fff;font-size:18px">0</span></div></div>
@@ -549,9 +561,13 @@ function subscribeRealtime(){
 }
 async function flushStoke(){
   if(!S.online || !S.me || (S.pendingStoke<=0 && !S.pendingBadges.size)) return;
-  const pts=S.pendingStoke, badges=[...S.pendingBadges]; S.pendingStoke=0; S.pendingBadges.clear();
-  try{ const {error} = await sb.rpc('add_stoke',{p_id:S.me.id,p_token:S.me.edit_token,p_points:pts,p_badges:badges}); if(error) throw error; }
-  catch(e){ console.warn(e); S.pendingStoke+=pts; badges.forEach(b=>S.pendingBadges.add(b)); }
+  if(S.me.edit_token==='demo') return;
+  for(let i=0;i<10 && (S.pendingStoke>0||S.pendingBadges.size);i++){
+    const pts=Math.min(500,S.pendingStoke), badges=[...S.pendingBadges]; S.pendingStoke-=pts; S.pendingBadges.clear();
+    try{ const {error} = await sb.rpc('add_stoke',{p_id:S.me.id,p_token:S.me.edit_token,p_points:pts,p_badges:badges}); if(error) throw error; }
+    catch(e){ console.warn(e); S.pendingStoke+=pts; badges.forEach(b=>S.pendingBadges.add(b)); break; }
+  }
+  loadFriends();
 }
 setInterval(flushStoke, 8000); document.addEventListener('visibilitychange',()=>document.hidden&&flushStoke());
 
@@ -610,12 +626,12 @@ const globe = Globe({animateIn:false})(globeEl)
   .globeImageUrl(null).showGraticules(false)
   .polygonCapColor(d=>d===S.hover?'#fff8dc':d.__color).polygonSideColor(()=>'rgba(35,35,35,.55)').polygonStrokeColor(()=>'#232323')
   .polygonAltitude(d=>d===S.hover?.02:.008).polygonsTransitionDuration(150)
-  .polygonLabel(d=>`${esc(d.properties.name)}${d.__n?` · ${d.__n} friend${d.__n>1?'s':''}`:''}`)
+  .polygonLabel(d=>`${esc(d.properties.name)}${d.__n?` · ${d.__n} friend${d.__n>1?'s':''}`:''}${S.mode==='place'?'':' · tap to zoom'}`)
   .onPolygonHover(d=>{ if(S.mode==='surf') return; S.hover=d; globe.polygonAltitude(x=>x===S.hover?.02:.008); globe.polygonCapColor(x=>x===S.hover?'#fff8dc':x.__color); })
-  .onPolygonClick((p,ev,c)=>onGlobeTap(c)).onGlobeClick(c=>onGlobeTap(c))
+  .onPolygonClick((p,ev,c)=>S.mode==='place'?onGlobeTap(c):zoomCountry(p,c)).onGlobeClick(c=>onGlobeTap(c))
   .pointOfView({lat:30,lng:-10,altitude:2.3});
 (function(){ const m=globe.globeMaterial(); m.color.set('#3FB3E3'); m.shininess=6; if(m.specular) m.specular.set('#9fdcf5'); })();
-const ctl=globe.controls(); ctl.autoRotate=true; ctl.autoRotateSpeed=.35; ctl.enableDamping=true; ctl.dampingFactor=.08; ctl.minDistance=140; ctl.maxDistance=520; ctl.enablePan=false; ctl.zoomSpeed=.7; ctl.rotateSpeed=.6;
+const ctl=globe.controls(); ctl.autoRotate=true; ctl.autoRotateSpeed=.35; ctl.enableDamping=true; ctl.dampingFactor=.08; ctl.minDistance=103; ctl.maxDistance=520; ctl.enablePan=false; ctl.zoomSpeed=.7; ctl.rotateSpeed=.6;
 function resize(){ globe.width(stage.clientWidth).height(stage.clientHeight); } resize(); addEventListener('resize',resize);
 ['pointerdown','wheel','touchstart'].forEach(ev=>globeEl.addEventListener(ev,()=>{ ctl.autoRotate=false; },{passive:true}));
 
@@ -650,7 +666,7 @@ function makeMarker(d){
   if(d.type==='friend'||d.type==='hq'){
     inner=document.createElement('div'); inner.className='pin'+(d.type==='hq'?' hq':'')+(S.me&&d.id===S.me.id?' me':'');
     inner.innerHTML = pinSVG(d.color||'#6AC6E8', d.type==='hq') + (d.type==='hq' ? `<div class="init">✝</div><div class="tag">Surf Church Porto</div>` : avatarHTML(d,'ph')+`<div class="tag">${esc(d.name.split(' ')[0])}</div>`);
-    inner.addEventListener('click',e=>{ e.stopPropagation(); openCard(d); flyTo(d,1.4); });
+    inner.addEventListener('click',e=>{ e.stopPropagation(); openCard(d); const a=globe.pointOfView()?.altitude??2; if(a>0.6) flyTo(d,0.5); });
     wrap.style.pointerEvents='none'; inner.style.pointerEvents='auto';
   } else if(d.type==='token'){ inner=document.createElement('div'); inner.className='token'; inner.textContent='🌊'; }
   else if(d.type==='surfer'){ inner=document.createElement('div'); inner.className='surfer'; inner.innerHTML=`<div class="ring"></div><div class="wake"></div><div class="shadow"></div><div class="body"><svg width="64" height="64" viewBox="0 0 52 52"><ellipse cx="26" cy="26" rx="9" ry="24" fill="#FFD764" stroke="#232323" stroke-width="2"/><path d="M26 4v44" stroke="#FF8B4D" stroke-width="3"/><path d="M13 27h26" stroke="#232323" stroke-width="4" stroke-linecap="round"/><circle cx="26" cy="26" r="6" fill="#4FD3C4" stroke="#232323" stroke-width="2"/><circle cx="26" cy="24" r="4" fill="#f3c9a0" stroke="#232323" stroke-width="1.5"/></svg></div><div class="you">You</div>`; }
@@ -658,19 +674,51 @@ function makeMarker(d){
   wrap.appendChild(inner); mk.appendChild(wrap); return {d,el:wrap,inner};
 }
 function setMarkers(list){ const keep=new Set(); list.forEach(d=>{ keep.add(d.id); if(!markers.has(d.id)) markers.set(d.id,makeMarker(d)); else markers.get(d.id).d=d; }); [...markers.keys()].forEach(id=>{ if(!keep.has(id)){ markers.get(id).el.remove(); markers.delete(id);} }); }
+/* clustering: far away → bubbles with a count (tap = zoom in); close up → coincident pins fan out in a ring so nobody hides anybody */
+const CL={pool:[],R:44,ALT:0.34,SPIDER:40};
+function clusterEl(i){ let c=CL.pool[i]; if(!c){ c=document.createElement('div'); c.className='cluster'; c.innerHTML='<div class="avs"></div><div class="n"></div>'; c.style.pointerEvents='auto'; mk.appendChild(c); CL.pool[i]=c; } return c; }
 function renderMarkers(){
   const cam=globe.camera().position, cl=Math.hypot(cam.x,cam.y,cam.z), horizon=100/cl+0.02, pov=globe.pointOfView(), alt=pov?pov.altitude:2.3;
-  const scale=clamp(2.2/(alt+1.15),.5,1.5), w=stage.clientWidth,h=stage.clientHeight;
+  const scale=clamp(2.2/(alt+1.15),.5,1.5), w=stage.clientWidth,h=stage.clientHeight, vis=[];
   markers.forEach(m=>{
     const d=m.d, p=globe.getCoords(d.lat,d.lng,0.01), pl=Math.hypot(p.x,p.y,p.z), dot=(p.x*cam.x+p.y*cam.y+p.z*cam.z)/(pl*cl);
     if(dot<horizon){ m.el.style.display='none'; return; }
     const sc=globe.getScreenCoords(d.lat,d.lng,0.01); if(!sc||sc.x<-80||sc.y<-80||sc.x>w+80||sc.y>h+80){ m.el.style.display='none'; return; }
-    m.el.style.display=''; const s=(d.type==='surfer'?1:scale)*(d.type==='token'?.9:1); const fade=clamp((dot-horizon)/.12,.15,1);
-    m.el.style.transform=`translate(${sc.x.toFixed(1)}px,${sc.y.toFixed(1)}px) scale(${s.toFixed(3)})`; m.el.style.opacity=fade; m.el.style.zIndex=Math.round(dot*1000)+(d.type==='surfer'?2000:(S.me&&d.id===S.me.id)?700:d.type==='hq'?500:0);
+    vis.push({m,d,x:sc.x,y:sc.y,dot,dx:0,dy:0,hide:false});
+  });
+  // group friend pins that sit on top of each other on screen
+  const pins=vis.filter(v=>v.d.type==='friend'), used=new Set(), groups=[];
+  const R=(alt>CL.ALT?CL.R:30)*scale;
+  pins.sort((a,b)=>a.d.id<b.d.id?-1:1).forEach(a=>{ if(used.has(a)) return; const g=[a]; used.add(a); pins.forEach(b=>{ if(!used.has(b)&&Math.hypot(a.x-b.x,a.y-b.y)<R){ g.push(b); used.add(b); } }); if(g.length>1) groups.push(g); });
+  let ci=0;
+  groups.forEach(g=>{
+    const cx=g.reduce((s,v)=>s+v.x,0)/g.length, cy=g.reduce((s,v)=>s+v.y,0)/g.length;
+    if(alt>CL.ALT){ // bubble
+      g.forEach(v=>v.hide=true); const c=clusterEl(ci++); const lat=g.reduce((s,v)=>s+v.d.lat,0)/g.length, lng=g.reduce((s,v)=>s+v.d.lng,0)/g.length;
+      if(c.dataset.k!==g.map(v=>v.d.id).join()){ c.dataset.k=g.map(v=>v.d.id).join(); c.querySelector('.avs').innerHTML=g.slice(0,3).map(v=>avatarHTML(v.d,'cav')).join(''); c.querySelector('.n').textContent=g.length; c.title=g.map(v=>v.d.name).join(', '); }
+      c.onclick=e=>{ e.stopPropagation(); flyTo({lat,lng},Math.max(0.05,alt*0.32),900); };
+      c.style.display=''; c.style.transform=`translate(${cx.toFixed(1)}px,${cy.toFixed(1)}px) scale(${scale.toFixed(3)})`; c.style.zIndex=Math.round(g[0].dot*1000)+600;
+    } else { // fan out in a ring
+      const ps=g.length>8?scale*0.72:scale, r=Math.max(CL.SPIDER*scale, g.length*64*ps/(2*Math.PI)); g.forEach((v,i)=>{ const a=-Math.PI/2+i*2*Math.PI/g.length; v.dx=cx+Math.cos(a)*r-v.x; v.dy=cy+Math.sin(a)*r-v.y; v.s=ps; });
+    }
+  });
+  for(let i=ci;i<CL.pool.length;i++) CL.pool[i].style.display='none';
+  vis.forEach(v=>{
+    const {m,d}=v; if(v.hide){ m.el.style.display='none'; return; }
+    m.el.style.display=''; const s=(d.type==='surfer'?1:(v.s||scale))*(d.type==='token'?.9:1); const fade=clamp((v.dot-horizon)/((1-horizon)*.3),.15,1);
+    m.el.style.transform=`translate(${(v.x+v.dx).toFixed(1)}px,${(v.y+v.dy).toFixed(1)}px) scale(${s.toFixed(3)})`; m.el.style.opacity=fade; m.el.style.zIndex=Math.round(v.dot*1000)+(d.type==='surfer'?2000:(S.me&&d.id===S.me.id)?700:d.type==='hq'?300:0);
+    m.inner.classList.toggle('show-tag', alt<CL.ALT && d.type==='friend');
     if(d.type==='surfer') m.inner.querySelector('.body').style.rotate=(d.heading||0)+'deg';
   });
 }
 function flyTo(d,alt=1.5,ms=1200){ ctl.autoRotate=false; globe.pointOfView({lat:d.lat,lng:d.lng,altitude:alt},ms); }
+function zoomCountry(f,c){
+  if(S.mode==='surf'||!f) return; let minLat=90,maxLat=-90,minLng=180,maxLng=-180;
+  const polys=f.geometry.type==='Polygon'?[f.geometry.coordinates]:f.geometry.coordinates; polys.forEach(p=>p[0].forEach(([lng,lat])=>{ minLat=Math.min(minLat,lat);maxLat=Math.max(maxLat,lat);minLng=Math.min(minLng,lng);maxLng=Math.max(maxLng,lng); }));
+  const span=Math.max(maxLat-minLat,(maxLng-minLng)*Math.cos(rad((minLat+maxLat)/2))); const wide=maxLng-minLng>180; // spans the antimeridian (Russia, Fiji…)
+  const pov=globe.pointOfView(); const target={lat:wide?c.lat:(minLat+maxLat)/2,lng:wide?c.lng:(minLng+maxLng)/2}; const alt=clamp(span/22,0.12,1.4);
+  flyTo(target, pov&&pov.altitude<alt*1.05?Math.max(0.06,pov.altitude*0.45):alt, 900);   // tap again = zoom closer
+}
 function refreshMarkers(){ const list=[CONFIG.HQ,...S.friends]; if(S.draft) list.push(S.draft); if(S.mode==='surf') list.push(...G.tokens.filter(t=>!t.got), G.surfer); setMarkers(list); }
 
 /* ---------- Friends list, search, cards ---------- */
@@ -682,8 +730,8 @@ function renderList(){
   $('#tabFriends').innerHTML = (hq?`<div class="row" data-id="hq"><div class="av init" style="background:#232323">✝</div><div><div class="nm">Surf Church Porto</div><div class="ct">Matosinhos, Portugal · HQ</div></div><div class="meta"><span class="acc" style="color:var(--orange)">HOME</span></div></div>`:'') + (list.length? list.map(f=>rowHTML(f)).join('') : `<div class="empty">${q?`No one matches “${esc(q)}” yet.<br>Maybe you're the first from there? 👀`:'No pins yet — be the first to drop in!'}</div>`);
 }
 $('#q').addEventListener('input',renderList);
-$('#q').addEventListener('keydown',e=>{ if(e.key==='Enter'){ const q=$('#q').value.trim(); const hit=S.friends.find(f=>matches(f,q)); if(hit){ openCard(hit); flyTo(hit,1.4);} } });
-document.addEventListener('click',e=>{ const r=e.target.closest('.row[data-id]'); if(!r) return; const id=r.dataset.id; const d=id==='hq'?CONFIG.HQ:S.friends.find(f=>f.id===id); if(d){ openCard(d); flyTo(d,1.4); if(innerWidth<=820) $('#side').classList.remove('open'); } });
+$('#q').addEventListener('keydown',e=>{ if(e.key==='Enter'){ const q=$('#q').value.trim(); const hit=S.friends.find(f=>matches(f,q)); if(hit){ openCard(hit); flyTo(hit,0.45);} } });
+document.addEventListener('click',e=>{ const r=e.target.closest('.row[data-id]'); if(!r) return; const id=r.dataset.id; const d=id==='hq'?CONFIG.HQ:S.friends.find(f=>f.id===id); if(d){ openCard(d); flyTo(d,0.45); if(innerWidth<=820) $('#side').classList.remove('open'); } });
 $$('.tab').forEach(t=>t.addEventListener('click',()=>{ $$('.tab').forEach(x=>x.classList.toggle('on',x===t)); ['friends','crew','me'].forEach(k=>$('#tab'+k[0].toUpperCase()+k.slice(1)).style.display=t.dataset.tab===k?'':'none'); sfx.ui(); }));
 $('#sideHead').addEventListener('click',()=>{ if(innerWidth<=820) $('#side').classList.toggle('open'); });
 
@@ -733,11 +781,12 @@ const F={editing:false,photoBlob:null,photoUrl:'',geo:null,color:CONFIG.PIN_COLO
 $('#colors').innerHTML=CONFIG.PIN_COLORS.map(c=>`<button type="button" data-c="${c}" style="background:${c}"></button>`).join('');
 $$('#colors button').forEach(b=>b.addEventListener('click',()=>{ F.color=b.dataset.c; $$('#colors button').forEach(x=>x.classList.toggle('on',x===b)); if(S.draft){S.draft.color=F.color; markers.get('draft')?.el.remove(); markers.delete('draft'); refreshMarkers();} }));
 $$('#colors button')[0].classList.add('on');
-function openPinForm(edit){
-  F.editing=edit; const me=edit?S.friends.find(f=>f.id===S.me?.id):null;
+async function openPinForm(edit, pre){
+  F.editing=edit; const me=edit?S.friends.find(f=>f.id===S.me?.id):(pre||null);
   $('#pinTitle').innerHTML=edit?'Edit your <em>pin</em>':'Drop your <em>pin</em>'; $('#pinSub').textContent=edit?'Moved? New quote? Update your spot.':"You surfed with us, you're crew. Add yourself to the map.";
   $('#fCode').style.display=edit?'none':''; $('#stepA').style.display=''; $('#stepB').style.display='none'; setSteps(1);
-  if(me){ $('#fNameIn').value=me.name; $('#fCityIn').value=me.city+(me.country?', '+me.country:''); $('#fQuoteIn').value=me.quote||''; $('#fIgIn').value=me.instagram||''; F.geo={lat:me.lat,lng:me.lng,city:me.city,country:me.country}; F.photoUrl=me.photo_url||''; F.color=me.color||F.color; $('#photoPrev').innerHTML=me.photo_url?`<img src="${esc(me.photo_url)}">`:'🙂'; showGeoOk(); }
+  if(me){ $('#fNameIn').value=me.name; $('#fCityIn').value=me.city+(me.country?', '+me.country:''); $('#fQuoteIn').value=me.quote||''; $('#fIgIn').value=me.instagram||''; F.geo={lat:me.lat,lng:me.lng,city:me.city,country:me.country}; F.photoUrl=me.photo_url||''; F.color=me.color||F.color; $('#photoPrev').innerHTML=me.photo_url?`<img src="${esc(me.photo_url)}">`:'🙂'; showGeoOk();
+    if(/^data:/.test(F.photoUrl)){ try{ F.photoBlob=await (await fetch(F.photoUrl)).blob(); }catch(e){} F.photoUrl=''; } }
   else { $('#pinForm').reset(); F.geo=null; F.photoBlob=null; F.photoUrl=''; $('#photoPrev').textContent='🙂'; $('#geoOk').style.display='none'; $('#btnPlace').disabled=true; }
   $$('#colors button').forEach(x=>x.classList.toggle('on',x.dataset.c===F.color)); $('#quoteCount').textContent=$('#fQuoteIn').value.length;
   $$('.field').forEach(f=>f.classList.remove('bad')); $('#submitErr').style.display='none'; openModal('#mPin'); if(!isTouch) setTimeout(()=>$(edit?'#fNameIn':'#fCodeIn').focus(),100);
@@ -783,7 +832,7 @@ $('#pinForm').addEventListener('submit',async e=>{
     if(S.online){
       if(F.photoBlob){ const path=`${uid()}.jpg`; const {error:ue}=await sb.storage.from(CONFIG.BUCKET).upload(path,F.photoBlob,{contentType:'image/jpeg',upsert:false}); if(ue) throw ue; payload.p_photo_url=sb.storage.from(CONFIG.BUCKET).getPublicUrl(path).data.publicUrl; }
       if(F.editing){ const {data,error}=await sb.rpc('update_pin',{p_id:S.me.id,p_token:S.me.edit_token,...payload}); if(error) throw error; if(!data) throw new Error('Could not verify that this pin is yours on this device.'); }
-      else { const {data,error}=await sb.rpc('drop_pin',{p_code:$('#fCodeIn').value.trim(),...payload}); if(error) throw error; S.me={id:data.id,edit_token:data.edit_token}; }
+      else { const {data,error}=await sb.rpc('drop_pin',{p_code:$('#fCodeIn').value.trim(),...payload}); if(error) throw error; S.me={id:data.id,edit_token:data.edit_token}; S.pendingStoke=Math.max(0,S.stoke-CONFIG.SCORE.pin); S.badges.forEach(b=>S.pendingBadges.add(b)); store.set('demoPins',[]); setTimeout(flushStoke,1500); }
       await loadFriends();
     } else { // demo mode: local only
       const local=store.get('demoPins',[]); const row={id:F.editing?S.me.id:'local-'+uid(),type:'friend',name:payload.p_name,city:payload.p_city,country:payload.p_country,lat:payload.p_lat,lng:payload.p_lng,quote:payload.p_quote,instagram:payload.p_instagram,color:payload.p_color,photo_url:F.photoBlob?await blobToDataURL(F.photoBlob):payload.p_photo_url,stoke:0,badges:['dropped_in'],created_at:new Date().toISOString()};
@@ -919,6 +968,8 @@ function loop(t){ const dt=Math.min(.1,(t-last)/1000); last=t; if(G.on&&S.mode==
   msg.textContent='Drawing the world…'; const pC=loadCountries().then(()=>{ prog+=50; bar.style.width=prog+'%'; });
   msg.textContent='Calling the crew…'; const pF=loadFriends().then(()=>{ prog+=40; bar.style.width=prog+'%'; });
   await Promise.all([pC,pF]); subscribeRealtime(); setMode('explore'); refreshMarkers();
+  // the site went live after this device had used demo mode → the local-only pin must be re-added to the real map
+  if(S.online && S.me && S.me.edit_token==='demo'){ const local=store.get('demoPins',[]); const mine=local.find(r=>r.id===S.me.id)||local[local.length-1]; S.me=null; persist(); store.set('demoPins',[]); if(mine){ setTimeout(()=>{ toast('The map is live now! Your pin was only saved on this device — drop it again to join the crew 🤙','good'); openPinForm(false, mine); },1800); } }
   if(!S.online) setSync('Demo mode · add Supabase keys to go live');
   setTimeout(()=>{ $('#loader').classList.add('hide'); if(!store.get('seen',false)){ openModal('#mHow'); store.set('seen',true); } }, 300);
   setTimeout(()=>globe.pointOfView({lat:38,lng:-9,altitude:2.0},1800),400);
