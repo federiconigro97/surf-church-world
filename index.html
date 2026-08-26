@@ -477,8 +477,8 @@ const CONFIG = {
   SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',  // Project settings → API → anon public
   BUCKET: 'avatars',
   HQ: { id:'hq', type:'hq', name:'Surf Church Porto', city:'Matosinhos', country:'Portugal',
-        lat:41.1830, lng:-8.6960, quote:'Our home base. Faith. Waves. People.',
-        instagram:'', color:'#FF8B4D' },       // add the HQ Instagram handle here if you want it on the card
+        lat:41.1830, lng:-8.6960, quote:'We love waves, we love Jesus, we love people.',
+        instagram:'surfchurchporto', website:'https://surfchurch.pt/en/', color:'#FF8B4D' },
   COUNTRIES_URL: 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json',
   COUNTRIES_FALLBACK: 'https://raw.githubusercontent.com/vasturiano/globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson',
   PIN_COLORS: ['#6AC6E8','#4FD3C4','#FFD764','#FF8B4D','#2F86C9','#F26D9B'],
@@ -687,7 +687,7 @@ document.addEventListener('click',e=>{ const r=e.target.closest('.row[data-id]')
 $$('.tab').forEach(t=>t.addEventListener('click',()=>{ $$('.tab').forEach(x=>x.classList.toggle('on',x===t)); ['friends','crew','me'].forEach(k=>$('#tab'+k[0].toUpperCase()+k.slice(1)).style.display=t.dataset.tab===k?'':'none'); sfx.ui(); }));
 $('#sideHead').addEventListener('click',()=>{ if(innerWidth<=820) $('#side').classList.toggle('open'); });
 
-const ICO={pin:'<svg viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2"><path d="M12 22s7-7.1 7-12a7 7 0 0 0-14 0c0 4.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.6"/></svg>',ig:'<svg viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1" fill="#232323"/></svg>',quote:'<svg viewBox="0 0 24 24" fill="#232323"><path d="M7 7h4v4c0 3-1 5-4 6v-2c1.2-.6 2-1.6 2-3H7V7zm8 0h4v4c0 3-1 5-4 6v-2c1.2-.6 2-1.6 2-3h-2V7z"/></svg>'};
+const ICO={pin:'<svg viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2"><path d="M12 22s7-7.1 7-12a7 7 0 0 0-14 0c0 4.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.6"/></svg>',ig:'<svg viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1" fill="#232323"/></svg>',quote:'<svg viewBox="0 0 24 24" fill="#232323"><path d="M7 7h4v4c0 3-1 5-4 6v-2c1.2-.6 2-1.6 2-3H7V7zm8 0h4v4c0 3-1 5-4 6v-2c1.2-.6 2-1.6 2-3h-2V7z"/></svg>',web:'<svg viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg>'};
 function openCard(d){
   const isHQ=d.type==='hq', isMe=S.me&&d.id===S.me.id, dist=isHQ?null:distKm(d,CONFIG.HQ);
   const badges=(d.badges||[]).filter(b=>BADGES[b]).map(b=>BADGES[b].art in ASSETS?`<img src="${ASSETS[BADGES[b].art]}" title="${BADGES[b].name}">`:`<span title="${BADGES[b].name}">${BADGES[b].art}</span>`).join('');
@@ -696,6 +696,7 @@ function openCard(d){
     ${isHQ?`<img class="hqimg" src="${ASSETS.hq}" alt="Surf Church Porto">`:''}
     <div class="meta"><div>${ICO.pin}<span>${esc(d.city)}${d.country?', '+esc(d.country):''}${dist!=null?` · <b>${fmtKm(dist)}</b> from HQ`:''}</span></div>
     ${d.instagram?`<div>${ICO.ig}<a href="https://instagram.com/${esc(d.instagram)}" target="_blank" rel="noopener">@${esc(d.instagram)}</a></div>`:''}
+    ${d.website?`<div>${ICO.web}<a href="${esc(d.website)}" target="_blank" rel="noopener">${esc(d.website.replace(/^https?:\/\//,'').replace(/\/$/,''))}</a></div>`:''}
     ${!isHQ?`<div>${ICO.quote}<span><b>${isMe?S.stoke:(d.stoke||0)}</b> stoke${S.found.has(d.id)?' · <span style="color:#1c8c6c;font-weight:600">found ✓</span>':''}</span></div>`:''}</div>
     ${badges?`<div class="mini-badges">${badges}</div>`:''}
     <div class="foot"><span class="stamp">${isHQ?'Home base':isMe?'That\'s you':'Surf camp crew'}</span>${!isHQ&&!isMe?`<button class="btn sm yellow" id="cardSurf">🏄 Surf here</button>`:''}${isMe?`<button class="btn sm" id="cardEdit">✏️ Edit my pin</button>`:''}</div>`;

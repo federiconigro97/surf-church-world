@@ -12,13 +12,13 @@ Everything is one file — `index.html` — using globe.gl (three.js), GSAP, can
 
 1. Create a free project at [supabase.com](https://supabase.com).
 2. **SQL Editor → New query** → paste the whole of [`supabase/setup.sql`](supabase/setup.sql) → **Run**.
-   - The camp code lives on line 12: `SURFCAMP2024`. Change it there whenever you want (the browser never sees it).
+   - The camp code lives on line 12: `SURFCAMP2026`. Change it there whenever you want (the browser never sees it).
 3. **Project Settings → API** → copy the **Project URL** and the **anon public** key (the anon key is designed to be public; all protection is done by Row Level Security and the SQL functions).
 
 ### 2 · Vercel (hosting)
 
 1. [vercel.com](https://vercel.com) → **Add New… → Project** → **Import** this GitHub repo. `vercel.json` already sets the build (`node build.js` → `dist/`).
-2. **Settings → Environment Variables** → add `SUPABASE_URL` and `SUPABASE_ANON_KEY` (optional: `HQ_INSTAGRAM`). Redeploy.
+2. **Settings → Environment Variables** → add `SUPABASE_URL` and `SUPABASE_ANON_KEY`. Redeploy.
 3. Every push to `main` redeploys automatically. Use the `*.vercel.app` URL or add your own domain.
 
 Without the two variables the site runs in **demo mode** (7 sample friends, pins saved only in the browser, any camp code of 3+ characters is accepted).

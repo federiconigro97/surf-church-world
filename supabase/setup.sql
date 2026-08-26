@@ -9,7 +9,7 @@ create table if not exists public.app_settings (
   value text not null
 );
 insert into public.app_settings (key, value)
-values ('camp_code', 'SURFCAMP2024')          -- ← change the code here any time
+values ('camp_code', 'SURFCAMP2026')          -- ← change the code here any time
 on conflict (key) do update set value = excluded.value;
 alter table public.app_settings enable row level security;   -- no policies = nobody can read it directly
 revoke all on public.app_settings from anon, authenticated;
@@ -128,4 +128,4 @@ exception when duplicate_object then null; end $$;
 
 -- 9) The HQ pin (Surf Church Porto · Matosinhos) is drawn by the game itself, no row needed.
 -- Optional demo rows (delete later):
--- select drop_pin('SURFCAMP2024','Marco Bianchi','Porto','Portugal',41.15,-8.61,'Faith. Waves. People.','marcobianchi','', '#FFD764');
+-- select drop_pin('SURFCAMP2026','Marco Bianchi','Porto','Portugal',41.15,-8.61,'Faith. Waves. People.','marcobianchi','', '#FFD764');

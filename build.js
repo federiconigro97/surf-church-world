@@ -8,7 +8,6 @@ if (url && key) {
              .replace("SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY'", `SUPABASE_ANON_KEY: '${key}'`);
   console.log('✔ Supabase keys injected → live mode');
 } else console.log('ℹ No SUPABASE_URL / SUPABASE_ANON_KEY env vars → demo mode');
-if (process.env.HQ_INSTAGRAM) html = html.replace("instagram:'', color:'#FF8B4D' }", `instagram:'${process.env.HQ_INSTAGRAM.replace(/^@/,'')}', color:'#FF8B4D' }`);
 fs.mkdirSync('dist', { recursive: true });
 fs.writeFileSync('dist/index.html', html);
 console.log('✔ dist/index.html written (' + Math.round(html.length / 1024) + ' KB)');
